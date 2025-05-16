@@ -156,7 +156,8 @@ const col = db.collection(req.body.board);//ok
 
 if (req.body.pw != process.env.PWRD) {
 
-res.send("no").status(401);
+//ff. override status
+res.send({status: 401}).status(401);
 //incorrect password correctly rejected. next: properly return and handle result, inc reloading the page on successful posting.
 
 } else {
@@ -184,26 +185,22 @@ timestamp: timestamp
 //if imgurl is blank, don't even add that key. mongodb is cool like that
 //ditto thread title, for... thread starting posts only
 
+
 //and go
+//has been inverted so lastid is updated first
 try {
-const r = await col.insertOne(doc);
-//console.log(r);
-
-//+ if successful, update board data lastid
- try{
-
-  const r2 = await data.updateOne({ _id: req.body.board }, {$set: {lastid: nextid} });
-//  console.log(r2);
-//res.send(r).status(200);
-
+const r1 = await data.updateOne({ _id: req.body.board }, {$set: {lastid: nextid} });
+ try {
+  const r2 = await col.insertOne(doc);
+  res.send(r2).status(200);//yay (:
  } catch (e2) {
-  console.log(e2);
+  console.log(e2);//handle errors pls
  };
-
-} catch (e) {
-console.log(e);
+} catch (e1) {
+ console.log(e1);
 };
 
-}//giant stupid else block
+
+}//end giant stupid else block
 
 });//create
