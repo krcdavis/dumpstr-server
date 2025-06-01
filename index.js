@@ -59,7 +59,7 @@ const grope = {$group: {_id: "$tid"} };//yatta... doh
   let results = await collection.aggregate([grope]).toArray();
 //console.log("ids ", results);
 //next: sort these by latest post... after getting posts I guess
-//
+//or: sort posts by date, newest first; aggregate until ~20 thread ids collected...
 
 
 //results is thread ids, like so-
@@ -158,7 +158,7 @@ if (req.body.pw != process.env.PWRD) {
 
 //ff. override status
 res.send({status: 401}).status(401);
-//incorrect password correctly rejected. next: properly return and handle result, inc reloading the page on successful posting.
+//incorrect password correctly rejected. next: properly return and handle result, inc reloading the page on successful posting. -done :)
 
 } else {
 
@@ -182,8 +182,16 @@ postbody: req.body.postbody,
 imgurl: req.body.imgurl,
 timestamp: timestamp
 }
+
+
 //if imgurl is blank, don't even add that key. mongodb is cool like that
 //ditto thread title, for... thread starting posts only
+
+//so, next: if title, add doc.title = title; ditto imgurl
+if (req.body.title) {
+doc.title = req.body.title;
+}
+
 
 
 //and go
