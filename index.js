@@ -55,31 +55,42 @@ app.get("/getthreads", async (req, res) => {
 //if board/collection not found, blocked, whateber, return an error page. else,
 
 
-const grope = {$group: {_id: "$tid"} };//yatta... doh
-  let results = await collection.aggregate([grope]).toArray();
-//console.log("ids ", results);
-//next: sort these by latest post... after getting posts I guess
-//or: sort posts by date, newest first; aggregate until ~20 thread ids collected...
+const grope = {$group: {_id: "$tid", last: {  $max: "$timestamp"  }} };//yatta... doh
+// "$tid", last: {  $max: timestamp  } } };//literally it, probably
+// and add { $sort: { last: 1 } } to the array
+
+const aggro = [grope ]
+  let results = await collection.aggregate([grope]).sort( { last: -1 } ).toArray();//there
+console.log("ids ", results);
+
 
 
 //results is thread ids, like so-
-//[ { _id: 12345 }, { _id: 52345 } ]
+//[ { _id: 12345, last: 111111111 }, { _id: 52345, last 111111110 } ]
 //next, for id in results, get posts for that thread id and package them together.
 const posts = {};
 
 for (const td of results) {
+console.log(td)//order is still correct...
 const array = [];
-//get posts with threadid,   sorted by id/timestamp <-- do this
-// { $sort: { _id: 1 } }
+
   let rs = collection.find({ tid: td._id });//.toArray();
-//for await
+
 for await (const p of rs) {
 //console.log(p);
 //append to array, then append array to posts
 //? make posts dict and like {tid12: [], tid56: []}
 array.push(p);
 }//for
-posts[td._id] = array;
+const ind = 9999999999 - td.last;
+//this will break in the year 2286... I think we're fine
+
+posts[ind] = array;//the problem likely lies here
+//testing.....
+//try transforming it into: key is (negative) last timestamp, set to dict {tid: ##, posts: []}
+//or send previous results with last as well and use as reference when setting up threads
+//orr just make posts an array of arrays [[posts from thread 1], posts from thread 2]]- tid can be derived from the first post in each subarray
+//yeah anyway it works now (:
 }//for
 
 //console.log(posts);
